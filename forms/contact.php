@@ -1,41 +1,43 @@
 <?php
-  /**
-  * Requires the "PHP Email Form" library
-  * The "PHP Email Form" library is available only in the pro version of the template
-  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
-  * For more info and help: https://bootstrapmade.com/php-email-form/
-  */
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $subject = $_POST['subject'];
+    $message = $_POST['message'];
 
-  // Replace contact@example.com with your real receiving email address
-  $receiving_email_address = 'dhruvpatel5721@gmail.com';
+    // Validate input fields
+    if (empty($name) || empty($email) || empty($subject) || empty($message)) {
+        echo "Please fill in all the fields.";
+        exit();
+    }
 
-  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
-    include( $php_email_form );
-  } else {
-    die( 'Unable to load the "PHP Email Form" Library!');
-  }
+    // Sanitize user input
+    $name = filter_var($name, FILTER_SANITIZE_STRING);
+    $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+    $subject = filter_var($subject, FILTER_SANITIZE_STRING);
+    $message = filter_var($message, FILTER_SANITIZE_STRING);
 
-  $contact = new PHP_Email_Form;
-  $contact->ajax = true;
-  
-  $contact->to = $receiving_email_address['dhruvpatel5721@gmail.com'];;
-  $contact->from_name = $_POST['name'];
-  $contact->from_email = $_POST['email'];
-  $contact->subject = $_POST['subject'];
+    // Validate email address
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "Invalid email address.";
+        exit();
+    }
 
-  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
-  /*
-  $contact->smtp = array(
-    'host' => 'example.com',
-    'username' => 'example',
-    'password' => 'pass',
-    'port' => '587'
-  );
-  */
+    // Send the email
+    $to = 'dhruvpatel5721@gmail.com'; // Replace with your own email address
+    $headers = "From: $email\r\n" .
+               "Reply-To: $email\r\n" .
+               "X-Mailer: PHP/" . phpversion();
 
-  $contact->add_message( $_POST['name'], 'From');
-  $contact->add_message( $_POST['email'], 'Email');
-  $contact->add_message( $_POST['message'], 'Message', 10);
+    $message_body = "Name: $name\n" .
+                    "Email: $email\n" .
+                    "Subject: $subject\n" .
+                    "Message: $message";
 
-  echo $contact->send();
+    if (mail($to, $subject, $message_body, $headers)) {
+        echo "Thank you for contacting us. We will get back to you soon!";
+    } else {
+        echo "Oops! Something went wrong. Please try again later.";
+    }
+}
 ?>
